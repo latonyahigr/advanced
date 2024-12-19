@@ -1,0 +1,71 @@
+cat > config.yml << EOF
+Log:
+  Level: none
+  AccessPath: # /etc/XrayR/access.Log
+  ErrorPath: # /etc/XrayR/error.log
+DnsConfigPath: # /etc/XrayR/dns.json # Path to dns config, check https://xtls.github.io/config/dns.html for help
+RouteConfigPath:  /etc/XrayR/route.json # Path to route config, check https://xtls.github.io/config/routing.html for help
+InboundConfigPath: # /etc/XrayR/custom_inbound.json # Path to custom inbound config, check https://xtls.github.io/config/inbound.html for help
+OutboundConfigPath:  /etc/XrayR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
+ConnectionConfig:
+  Handshake: 4 # Handshake time limit, Second
+  ConnIdle: 30 # Connection idle time limit, Second
+  UplinkOnly: 2 # Time limit when the connection downstream is closed, Second
+  DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
+  BufferSize: 64 # The internal cache size of each connection, kB
+Nodes:
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.xingyun3.com"
+      ApiKey: "asdfwer21sdfa13sadf0asd"
+      NodeID: 20
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://mqtx.tompoint.online"
+      ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
+      NodeID: 40
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://fftx.afeifeicloud.top"
+      ApiKey: "VUu3PUwXdDnZgMe5cDT3"
+      NodeID: 27
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.qiyunzero.xyz"
+      ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
+      NodeID: 7
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.dengta.store"
+      ApiKey: "c9372a7e0a44f8b6790137c645ce"
+      NodeID: 8
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.zhousi.link"
+      ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
+      NodeID: 35
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+EOF
