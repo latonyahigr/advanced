@@ -1,14 +1,10 @@
-#!/bin/bash 
+#!/bin/bash
 
 # 定义变量
 XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
-CONFIG_REPO="https://github.com/latonyahigr/warpusa.git"  # 使用 HTTPS 协议
+CONFIG_REPO="git@github.com:latonyahigr/warpusa.git"
 CONFIG_DIR="/etc/XrayR"
 TMP_DIR="/tmp/xrayr-config"
-
-# 安装 git
-echo "安装 git..."
-sudo apt update && sudo apt install -y git
 
 # Step 1: 安装 XrayR
 echo "正在安装 XrayR..."
@@ -21,18 +17,31 @@ if [ -d "$TMP_DIR" ]; then
 fi
 git clone "$CONFIG_REPO" "$TMP_DIR"
 
-# 检查文件是否成功下载
-if [ -f "$TMP_DIR/custom_outbound.json" ] && [ -f "$TMP_DIR/route.json" ]; then
-    echo "配置文件下载成功！"
+# Step 3: 检查并替换配置文件
+echo "检查并替换配置文件..."
+if [ -d "$CONFIG_DIR" ]; then
+    echo "目标目录 $CONFIG_DIR 存在，继续替换配置文件..."
 else
-    echo "配置文件下载失败，请检查仓库地址和网络连接。"
-    exit 1
+    echo "目标目录 $CONFIG_DIR 不存在，创建中..."
+    sudo mkdir -p "$CONFIG_DIR"
+    sudo chmod 755 "$CONFIG_DIR"
 fi
 
-# Step 3: 替换配置文件
-echo "替换配置文件..."
-sudo cp /etc/XrayR/custom_outbound.json "$CONFIG_DIR/custom_outbound.json"
-sudo cp /etc/XrayR/route.json "$CONFIG_DIR/route.json"
+# 检查并移动 custom_outbound.json 文件
+if [ -f "$TMP_DIR/custom_outbound.json" ]; then
+    sudo mv "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
+    echo "已替换 custom_outbound.json 文件"
+else
+    echo "custom_outbound.json 文件不存在，请检查"
+fi
+
+# 检查并移动 route.json 文件
+if [ -f "$TMP_DIR/route.json" ]; then
+    sudo mv "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"
+    echo "已替换 route.json 文件"
+else
+    echo "route.json 文件不存在，请检查"
+fi
 
 # 清理临时目录
 rm -rf "$TMP_DIR"
@@ -64,20 +73,59 @@ Nodes:
     ControllerConfig:
       CertConfig:
         CertMode: none
-  # (其他节点配置保持不变)
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://mqtx.tompoint.online"
+      ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
+      NodeID: 40
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://fftx.afeifeicloud.top"
+      ApiKey: "VUu3PUwXdDnZgMe5cDT3"
+      NodeID: 27
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.qiyunzero.xyz"
+      ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
+      NodeID: 7
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.dengta.store"
+      ApiKey: "c9372a7e0a44f8b6790137c645ce"
+      NodeID: 8
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  - PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.zhousi.link"
+      ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
+      NodeID: 35
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
 EOF
 
 # Step 5: 重启 XrayR 服务
 echo "重启 XrayR 服务..."
-XrayR status  # 查看 XrayR 状态，确保安装成功
 XrayR restart
 
 # Step 6: 安装 BBR
 echo "安装 BBR..."
-if sysctl net.ipv4.tcp_available_congestion_control | grep -q 'bbr'; then
-    echo "BBR 已经启用"
-else
-    bash <(curl -Ls "https://neko.nnr.moe/ii.sh")
-fi
+bash <(curl -Ls "https://neko.nnr.moe/ii.sh")
 
 echo "所有操作完成！"
