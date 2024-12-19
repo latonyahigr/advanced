@@ -68,7 +68,7 @@ ConnectionConfig:
   DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
   BufferSize: 64 # The internal cache size of each connection, kB
 Nodes:
-  - PanelType: "V2board"
+  - PanelType: "NewV2board"
     ApiConfig:
       ApiHost: "https://tx.xingyun3.com"
       ApiKey: "asdfwer21sdfa13sadf0asd"  # 请替换为实际值
@@ -77,7 +77,7 @@ Nodes:
     ControllerConfig:
       CertConfig:
         CertMode: none
- - PanelType: "V2board"
+ - PanelType: "NewV2board"
    ApiConfig:
      ApiHost: "https://mqtx.tompoint.online"
      ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
@@ -86,7 +86,7 @@ Nodes:
    ControllerConfig:
      CertConfig:
        CertMode: none
- - PanelType: "V2board"
+ - PanelType: "NewV2board"
    ApiConfig:
      ApiHost: "https://fftx.afeifeicloud.top"
      ApiKey: "VUu3PUwXdDnZgMe5cDT3"
@@ -95,7 +95,7 @@ Nodes:
    ControllerConfig:
      CertConfig:
        CertMode: none
- - PanelType: "V2board"
+ - PanelType: "NewV2board"
    ApiConfig:
      ApiHost: "https://tx.qiyunzero.xyz"
      ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
@@ -104,7 +104,7 @@ Nodes:
    ControllerConfig:
      CertConfig:
        CertMode: none
- - PanelType: "V2board"
+ - PanelType: "NewV2board"
    ApiConfig:
      ApiHost: "https://tx.dengta.store"
      ApiKey: "c9372a7e0a44f8b6790137c645ce"
@@ -113,7 +113,7 @@ Nodes:
    ControllerConfig:
      CertConfig:
        CertMode: none
- - PanelType: "V2board"
+ - PanelType: "NewV2board"
    ApiConfig:
      ApiHost: "https://tx.zhousi.link"
      ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
