@@ -3,7 +3,7 @@ set -e  # 如果任何一个命令失败，则立即退出脚本
 
 # 定义变量
 XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
-CONFIG_REPO="https://github.com/latonyahigr/taiwan.git"
+CONFIG_REPO="https://github.com/latonyahigr/xrayrwrap/taiwan.git"
 CONFIG_DIR="/etc/XrayR"
 TMP_DIR="/tmp/xrayr-config"
 
