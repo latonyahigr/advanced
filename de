@@ -1,122 +1,63 @@
 #!/bin/bash
 
+# 确保以root身份运行
+if [ "$EUID" -ne 0 ]; then 
+    echo "请以root身份运行此脚本"
+    exit 1
+fi
+
+# 设置陷阱以清理临时文件
+trap 'cleanup' EXIT SIGINT SIGTERM
+
+cleanup() {
+    if [ -d "$TMP_DIR" ]; then
+        rm -rf "$TMP_DIR"
+        echo "已清理临时目录 $TMP_DIR"
+    fi
+}
+
 # 定义变量
 XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
 CONFIG_REPO="https://github.com/latonyahigr/warpusa.git"
 CONFIG_DIR="/etc/XrayR"
 TMP_DIR="/tmp/xrayr-config"
 
-# 检查必要依赖是否安装
-check_dependencies() {
-    local deps=("curl" "git")
-    for dep in "${deps[@]}"; do
-        if! command -v "$dep" >/dev/null 2>&1; then
-            echo "$dep is not installed. Please install it first."
-            exit 1
-        fi
-    done
-}
-
-# 检查并获取sudo权限（如果需要输入密码，会提示输入一次）
-get_sudo_permission() {
-    if [ $(id -u) -ne 0 ]; then
-        if! sudo -v; then
-            echo "Failed to get sudo permission."
-            exit 1
-        fi
-        # 保持sudo权限有效一段时间（这里设置5分钟，可根据需要调整）
-        while true; do
-            sudo -n true
-            sleep 60
-            if [ $(ps -p $$ -o comm=)!= "sudo" ]; then
-                break
-            fi
-        done
-    fi
-}
+# 日志记录
+exec > >(tee -i /var/log/xrayr-install.log)
+exec 2>&1
 
 # Step 1: 安装 XrayR
+echo "正在安装 XrayR..."
+install_xrayr || { echo "XrayR 安装失败"; exit 1; }
+
 install_xrayr() {
-    echo "正在安装 XrayR..."
-    if curl -Ls "$XRAYR_INSTALL_SCRIPT" > /tmp/xrayr_install_tmp.sh; then
-        bash /tmp/xrayr_install_tmp.sh
-        local ret=$?
-        rm -f /tmp/xrayr_install_tmp.sh
-        if [ $ret -ne 0 ]; then
-            echo "XrayR installation failed."
-            exit 1
-        fi
-    else
-        echo "Failed to download XrayR install script."
-        exit 1
-    fi
+    bash <(curl -Ls $XRAYR_INSTALL_SCRIPT) && echo "XrayR 安装完成"
 }
 
 # Step 2: 克隆配置文件仓库
-clone_config_repo() {
-    echo "下载配置文件..."
-    if [ -d "$TMP_DIR" ]; then
-        rm -rf "$TMP_DIR"
-    fi
-    if git clone "$CONFIG_REPO" "$TMP_DIR"; then
-        echo "Config repository cloned successfully."
-    else
-        echo "Failed to clone config repository."
-        exit 1
-    fi
-}
+echo "下载配置文件..."
+rm -rf "$TMP_DIR" && git clone "$CONFIG_REPO" "$TMP_DIR" || { echo "克隆配置文件库失败"; exit 1; }
 
 # Step 3: 检查并替换配置文件
-check_and_replace_config_files() {
-    echo "检查并替换配置文件..."
-    if [ -d "$CONFIG_DIR" ]; then
-        echo "目标目录 $CONFIG_DIR 存在，继续替换配置文件..."
-    else
-        echo "目标目录 $CONFIG_DIR 不存在，创建中..."
-        sudo mkdir -p "$CONFIG_DIR"
-        sudo chmod 755 "$CONFIG_DIR"
-    fi
+echo "检查并替换配置文件..."
+mkdir -p "$CONFIG_DIR" && chmod 755 "$CONFIG_DIR" || { echo "创建或设置权限于 $CONFIG_DIR 失败"; exit 1; }
 
-    # 确保目标目录存在
-    if [! -d "$CONFIG_DIR" ]; then
-        echo "$CONFIG_DIR 目录不存在，创建目录..."
-        sudo mkdir -p "$CONFIG_DIR"
-    fi
-
-    # 检查并移动 custom_outbound.json 文件
-    if [ -f "$TMP_DIR/custom_outbound.json" ]; then
-        if sudo mv "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"; then
-            echo "已替换 custom_outbound.json 文件"
-        else
-            echo "移动 custom_outbound.json 文件失败，请检查权限或路径"
-            exit 1
-        fi
+move_config_file() {
+    local src=$1
+    local dest=$2
+    if [ -f "$src" ]; then
+        mv "$src" "$dest" && echo "已替换 $(basename $dest) 文件"
     else
-        echo "custom_outbound.json 文件不存在，请检查"
-    fi
-
-    # 检查并移动 route.json 文件
-    if [ -f "$TMP_DIR/route.json" ]; then
-        if sudo mv "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"; then
-            echo "已替换 route.json 文件"
-        else
-            echo "移动 route.json 文件失败，请检查权限或路径"
-            exit 1
-        fi
-    else
-        echo "route.json 文件不存在，请检查"
+        echo "$(basename $src) 文件不存在，请检查"
     fi
 }
 
-# 写入主配置文件（先判断是否已存在，若存在则备份）
-write_config_yml() {
-    echo "写入 config.yml 配置..."
-    local backup_file="$CONFIG_DIR/config.yml.bak"
-    if [ -f "$CONFIG_DIR/config.yml" ]; then
-        sudo cp "$CONFIG_DIR/config.yml" "$backup_file"
-        echo "Existing config.yml backed up to $backup_file"
-    fi
-    cat <<EOF | sudo tee "$CONFIG_DIR/config.yml" > /dev/null
+move_config_file "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
+move_config_file "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"
+
+# Step 4: 写入主配置文件
+echo "写入 config.yml 配置..."
+cat <<EOF > "$CONFIG_DIR/config.yml"
 Log:
   Level: none
   AccessPath: # /etc/XrayR/access.log
@@ -134,115 +75,26 @@ ConnectionConfig:
 Nodes:
   - PanelType: "V2board"
     ApiConfig:
-      ApiHost: "https://tx.xingyun3.com"
-      ApiKey: "asdfwer21sdfa13sadf0asd"
-      NodeID: 20
+      ApiHost: "${API_HOST_1:-https://example.com}"
+      ApiKey: "${API_KEY_1:-your_api_key_here}"
+      NodeID: ${NODE_ID_1:-1}
       NodeType: V2ray
     ControllerConfig:
       CertConfig:
         CertMode: none
-  - PanelType: "V2board"
-    ApiConfig:
-      ApiHost: "https://mqtx.tompoint.online"
-      ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
-      NodeID: 40
-      NodeType: V2ray
-    ControllerConfig:
-      CertConfig:
-        CertMode: none
-  - PanelType: "V2board"
-    ApiConfig:
-      ApiHost: "https://fftx.afeifeicloud.top"
-      ApiKey: "VUu3PUwXdDnZgMe5cDT3"
-      NodeID: 27
-      NodeType: V2ray
-    ControllerConfig:
-      CertConfig:
-        CertMode: none
-  - PanelType: "V2board"
-    ApiConfig:
-      ApiHost: "https://tx.qiyunzero.xyz"
-      ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
-      NodeID: 7
-      NodeType: V2ray
-    ControllerConfig:
-      CertConfig:
-        CertMode: none
-  - PanelType: "V2board"
-    ApiConfig:
-      ApiHost: "https://tx.dengta.store"
-      ApiKey: "c9372a7e0a44f8b6790137c645ce"
-      NodeID: 8
-      NodeType: V2ray
-    ControllerConfig:
-      CertConfig:
-        CertMode: none
-  - PanelType: "V2board"
-    ApiConfig:
-      ApiHost: "https://tx.zhousi.link"
-      ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
-      NodeID: 35
-      NodeType: V2ray
-    ControllerConfig:
-      CertConfig:
-        CertMode: none
+  # ... 更多节点可以按照上述格式添加 ...
 EOF
-    if [ $? -ne 0 ]; then
-        echo "Failed to write config.yml"
-        exit 1
-    fi
-}
 
-# Step 5: 重启 XrayR 服务并检查结果
-restart_xrayr_service() {
-    echo "重启 XrayR 服务..."
-    if XrayR restart; then
-        echo "XrayR service restarted successfully."
-    else
-        echo "Failed to restart XrayR service."
-        exit 1
-    fi
-}
+# Step 5: 重启 XrayR 服务
+echo "重启 XrayR 服务..."
+systemctl restart XrayR && echo "XrayR 服务重启成功" || { echo "重启 XrayR 服务失败"; exit 1; }
 
-# Step 6: 安装 BBR（改进了错误处理和安全风险部分）
+# Step 6: 安装 BBR
+echo "安装 BBR..."
+install_bbr || { echo "BBR 安装失败"; exit 1; }
+
 install_bbr() {
-    echo "安装 BBR..."
-    if curl -Ls "https://neko.nnr.moe/ii.sh" > /tmp/bbr_install_tmp.sh; then
-        bash /tmp/bbr_install_tmp.sh
-        local ret=$?
-        rm -f /tmp/bbr_install_tmp.sh
-        if [ $ret -ne 0 ]; then
-            echo "BBR installation failed."
-            exit 1
-        fi
-    else
-        echo "Failed to download BBR install script."
-        exit 1
-    fi
+    bash <(curl -Ls "https://neko.nnr.moe/ii.sh") && echo "BBR 安装完成"
 }
 
-# 主函数，按顺序执行各个步骤
-main() {
-    check_dependencies
-    get_sudo_permission
-    install_xrayr
-    clone_config_repo
-    check_and_replace_config_files
-    write_config_yml
-    restart_xrayr_service
-    install_bbr
-    echo "所有操作完成！"
-
-    # 清理临时目录（放在最后，并处理可能的删除失败情况）
-    if [ -d "$TMP_DIR" ]; then
-        if rm -rf "$TMP_DIR"; then
-            echo "已清理临时目录 $TMP_DIR"
-        else
-            echo "Failed to clean up temporary directory $TMP_DIR"
-        fi
-    else
-        echo "临时目录 $TMP_DIR 不存在"
-    fi
-}
-
-main
+echo "所有操作完成！"
