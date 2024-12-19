@@ -1,12 +1,41 @@
-cat > config.yml << EOF
+#!/bin/bash
+
+# 定义变量
+XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
+CONFIG_REPO="git@github.com:latonyahigr/warpusa.git"
+CONFIG_DIR="/etc/XrayR"
+TMP_DIR="/tmp/xrayr-config"
+
+# Step 1: 安装 XrayR
+echo "正在安装 XrayR..."
+bash <(curl -Ls $XRAYR_INSTALL_SCRIPT)
+
+# Step 2: 克隆配置文件仓库
+echo "下载配置文件..."
+if [ -d "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR"
+fi
+git clone "$CONFIG_REPO" "$TMP_DIR"
+
+# Step 3: 替换配置文件
+echo "替换配置文件..."
+sudo mv "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
+sudo mv "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"
+
+# 清理临时目录
+rm -rf "$TMP_DIR"
+
+# Step 4: 写入主配置文件
+echo "写入 config.yml 配置..."
+cat <<EOF > "$CONFIG_DIR/config.yml"
 Log:
   Level: none
-  AccessPath: # /etc/XrayR/access.Log
+  AccessPath: # /etc/XrayR/access.log
   ErrorPath: # /etc/XrayR/error.log
 DnsConfigPath: # /etc/XrayR/dns.json # Path to dns config, check https://xtls.github.io/config/dns.html for help
-RouteConfigPath:  /etc/XrayR/route.json # Path to route config, check https://xtls.github.io/config/routing.html for help
+RouteConfigPath: $CONFIG_DIR/route.json # Path to route config, check https://xtls.github.io/config/routing.html for help
 InboundConfigPath: # /etc/XrayR/custom_inbound.json # Path to custom inbound config, check https://xtls.github.io/config/inbound.html for help
-OutboundConfigPath:  /etc/XrayR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
+OutboundConfigPath: $CONFIG_DIR/custom_outbound.json # Path to custom outbound config, check https://xtls.github.io/config/outbound.html for help
 ConnectionConfig:
   Handshake: 4 # Handshake time limit, Second
   ConnIdle: 30 # Connection idle time limit, Second
@@ -69,3 +98,13 @@ Nodes:
       CertConfig:
         CertMode: none
 EOF
+
+# Step 5: 重启 XrayR 服务
+echo "重启 XrayR 服务..."
+XrayR restart
+
+# Step 6: 安装 BBR
+echo "安装 BBR..."
+bash <(curl -Ls "https://neko.nnr.moe/ii.sh")
+
+echo "所有操作完成！"
