@@ -2,7 +2,7 @@
 
 # 定义变量
 XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
-CONFIG_REPO="git@github.com:latonyahigr/warpusa.git"
+CONFIG_REPO="https://github.com/latonyahigr/warpusa.git"
 CONFIG_DIR="/etc/XrayR"
 TMP_DIR="/tmp/xrayr-config"
 
