@@ -71,7 +71,7 @@ Nodes:
   - PanelType: "V2board"
     ApiConfig:
       ApiHost: "https://tx.xingyun3.com"
-      ApiKey: "REPLACE_WITH_YOUR_API_KEY"  # 请替换为实际值
+      ApiKey: "asdfwer21sdfa13sadf0asd"  # 请替换为实际值
       NodeID: 20
       NodeType: V2ray
     ControllerConfig:
