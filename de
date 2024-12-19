@@ -27,24 +27,41 @@ else
     sudo chmod 755 "$CONFIG_DIR"
 fi
 
+# 确保目标目录存在
+if [ ! -d "$CONFIG_DIR" ]; then
+    echo "$CONFIG_DIR 目录不存在，创建目录..."
+    sudo mkdir -p "$CONFIG_DIR"
+fi
+
 # 检查并移动 custom_outbound.json 文件
 if [ -f "$TMP_DIR/custom_outbound.json" ]; then
-    sudo mv "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
-    echo "已替换 custom_outbound.json 文件"
+    if sudo mv "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"; then
+        echo "已替换 custom_outbound.json 文件"
+    else
+        echo "移动 custom_outbound.json 文件失败，请检查权限或路径"
+    fi
 else
     echo "custom_outbound.json 文件不存在，请检查"
 fi
 
 # 检查并移动 route.json 文件
 if [ -f "$TMP_DIR/route.json" ]; then
-    sudo mv "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"
-    echo "已替换 route.json 文件"
+    if sudo mv "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"; then
+        echo "已替换 route.json 文件"
+    else
+        echo "移动 route.json 文件失败，请检查权限或路径"
+    fi
 else
     echo "route.json 文件不存在，请检查"
 fi
 
 # 清理临时目录
-rm -rf "$TMP_DIR"
+if [ -d "$TMP_DIR" ]; then
+    rm -rf "$TMP_DIR"
+    echo "已清理临时目录 $TMP_DIR"
+else
+    echo "临时目录 $TMP_DIR 不存在"
+fi
 
 # Step 4: 写入主配置文件
 echo "写入 config.yml 配置..."
