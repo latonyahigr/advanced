@@ -6,6 +6,8 @@ XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-rele
 CONFIG_REPO="https://github.com/latonyahigr/xrayrwrap.git"  # 使用仓库的克隆URL
 COMMIT_HASH="f1321b085cc63d42d086427dc2fbbc225675d995"     # 特定提交的哈希值
 SUBDIRECTORY="american"                                    # 子目录名称
+CONFIG_DIR="/etc/XrayR"
+TMP_DIR="/tmp/xrayr-config"
 
 # 日志记录设置
 LOG_FILE="/var/log/install_xrayr.log"
@@ -25,10 +27,21 @@ if ! bash <(curl -Ls $XRAYR_INSTALL_SCRIPT); then
     exit 1
 fi
 
-# Step 2: 克隆配置文件仓库
+# Step 2: 克隆配置文件仓库并切换到指定提交
 echo "下载配置文件..."
-rm -rf "$TMP_DIR" && git clone "$CONFIG_REPO" "$TMP_DIR" || { echo "克隆配置文件库失败" >&2; exit 1; }
-cd "$TMP_DIR" && git checkout "$COMMIT_HASH" && cd "$SUBDIRECTORY" || { echo "切换到指定提交和子目录失败" >&2; exit 1; }
+rm -rf "$TMP_DIR" && git clone --depth 1 --branch "$COMMIT_HASH" "$CONFIG_REPO" "$TMP_DIR" || { echo "克隆配置文件库失败" >&2; exit 1; }
+
+# 检查是否成功切换到了指定的提交
+if [ "$(git -C "$TMP_DIR" rev-parse HEAD)" != "$COMMIT_HASH" ]; then
+    echo "未能正确切换到指定提交 $COMMIT_HASH" >&2
+    exit 1
+fi
+
+# 进入子目录前检查子目录是否存在
+if [ ! -d "$TMP_DIR/$SUBDIRECTORY" ]; then
+    echo "子目录 $SUBDIRECTORY 不存在" >&2
+    exit 1
+fi
 
 # Step 3: 检查并替换配置文件
 echo "检查并替换配置文件..."
@@ -44,8 +57,9 @@ move_config_file() {
     fi
 }
 
-move_config_file "$TMP_DIR/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
-move_config_file "$TMP_DIR/route.json" "$CONFIG_DIR/route.json"
+# 调整路径为克隆后子目录内的路径
+move_config_file "$TMP_DIR/$SUBDIRECTORY/custom_outbound.json" "$CONFIG_DIR/custom_outbound.json"
+move_config_file "$TMP_DIR/$SUBDIRECTORY/route.json" "$CONFIG_DIR/route.json"
 
 # 清理临时目录
 rm -rf "$TMP_DIR"
