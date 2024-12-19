@@ -3,7 +3,7 @@ set -e  # 如果任何一个命令失败，则立即退出脚本
 
 # 定义变量
 XRAYR_INSTALL_SCRIPT="https://raw.githubusercontent.com/XrayR-project/XrayR-release/master/install.sh"
-CONFIG_REPO="https://github.com/latonyahigr/warpusa.git"
+CONFIG_REPO="https://github.com/latonyahigr/taiwan.git"
 CONFIG_DIR="/etc/XrayR"
 TMP_DIR="/tmp/xrayr-config"
 
@@ -68,60 +68,66 @@ ConnectionConfig:
   DownlinkOnly: 4 # Time limit when the connection is closed after the uplink is closed, Second
   BufferSize: 64 # The internal cache size of each connection, kB
 Nodes:
-  - PanelType: "NewV2board"
+  -
+    PanelType: "V2board"
     ApiConfig:
       ApiHost: "https://tx.xingyun3.com"
-      ApiKey: "asdfwer21sdfa13sadf0asd"  # 请替换为实际值
+      ApiKey: "asdfwer21sdfa13sadf0asd"
       NodeID: 20
       NodeType: V2ray
     ControllerConfig:
       CertConfig:
         CertMode: none
- - PanelType: "NewV2board"
-   ApiConfig:
-     ApiHost: "https://mqtx.tompoint.online"
-     ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
-     NodeID: 40
-     NodeType: V2ray
-   ControllerConfig:
-     CertConfig:
-       CertMode: none
- - PanelType: "NewV2board"
-   ApiConfig:
-     ApiHost: "https://fftx.afeifeicloud.top"
-     ApiKey: "VUu3PUwXdDnZgMe5cDT3"
-     NodeID: 27
-     NodeType: V2ray
-   ControllerConfig:
-     CertConfig:
-       CertMode: none
- - PanelType: "NewV2board"
-   ApiConfig:
-     ApiHost: "https://tx.qiyunzero.xyz"
-     ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
-     NodeID: 7
-     NodeType: V2ray
-   ControllerConfig:
-     CertConfig:
-       CertMode: none
- - PanelType: "NewV2board"
-   ApiConfig:
-     ApiHost: "https://tx.dengta.store"
-     ApiKey: "c9372a7e0a44f8b6790137c645ce"
-     NodeID: 8
-     NodeType: V2ray
-   ControllerConfig:
-     CertConfig:
-       CertMode: none
- - PanelType: "NewV2board"
-   ApiConfig:
-     ApiHost: "https://tx.zhousi.link"
-     ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
-     NodeID: 35
-     NodeType: V2ray
-   ControllerConfig:
-     CertConfig:
-       CertMode: none
+  -
+    PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://mqtx.tompoint.online"
+      ApiKey: "IICIjANBgkqhkiG9w0BAQEFAAOCA"
+      NodeID: 40
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  -
+    PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://fftx.afeifeicloud.top"
+      ApiKey: "VUu3PUwXdDnZgMe5cDT3"
+      NodeID: 27
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  -
+    PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.qiyunzero.xyz"
+      ApiKey: "4f42e9b78554d3d5a2NTR88YTSh"
+      NodeID: 7
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  -
+    PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.dengta.store"
+      ApiKey: "c9372a7e0a44f8b6790137c645ce"
+      NodeID: 8
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
+  -
+    PanelType: "V2board"
+    ApiConfig:
+      ApiHost: "https://tx.zhousi.link"
+      ApiKey: "8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u"
+      NodeID: 35
+      NodeType: V2ray
+    ControllerConfig:
+      CertConfig:
+        CertMode: none
 EOF
 
 # Step 5: 重启 XrayR 服务
